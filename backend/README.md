@@ -57,6 +57,19 @@ Run Pylint with the project settings in `.pylintrc`:
 uv run pylint app
 ```
 
+## Agents
+
+This project also exposes ADK agents via the `adk api_server` command (see `railway.adk.json`). Agents live under `backend/agents/`:
+
+- `sidekick_agent/root_agent`: general helper.
+- `code_reviewer_agent/code_reviewer`: connects to the GitHub MCP server (read-only) and returns a structured JSON rubric for the provided code-sample questions. Requires `GITHUB_TOKEN` in the environment. The token is sent as a bearer header to `https://api.githubcopilot.com/mcp/` with toolsets `repos, issues, pull_requests, users, code_security, dependabot` in read-only mode.
+
+Example start (local):
+
+```bash
+uv run adk api_server --host 0.0.0.0 --port 8001 agents
+```
+
 ## Project Structure
 
 ```

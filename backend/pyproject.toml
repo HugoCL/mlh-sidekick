@@ -14,3 +14,8 @@ dependencies = [
     "psycopg2-binary==2.9.10",
     "python-dotenv==1.0.1",
 ]
+
+[dependency-groups]
+dev = [
+    "pylint>=4.0.4",
+]

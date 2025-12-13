@@ -49,6 +49,14 @@ The API will be available at:
 - Interactive API docs (Swagger): http://localhost:8000/docs
 - Alternative API docs (ReDoc): http://localhost:8000/redoc
 
+## Linting
+
+Run Pylint with the project settings in `.pylintrc`:
+
+```bash
+uv run pylint app
+```
+
 ## Project Structure
 
 ```

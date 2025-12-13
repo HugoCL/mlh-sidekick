@@ -5,19 +5,19 @@ This is the backend service for MLH Sidekick, built with FastAPI and Pydantic, u
 ## Prerequisites
 
 - Python 3.12+
+- UV (Python package manager)
 - PostgreSQL database
 
 ## Setup
 
-1. Create a virtual environment and activate it:
+1. Install UV if you haven't already:
 ```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install uv
 ```
 
 2. Install dependencies:
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 3. Create a `.env` file based on `.env.example`:
@@ -29,19 +29,19 @@ cp .env.example .env
 
 5. Generate Prisma client:
 ```bash
-prisma generate
+uv run prisma generate
 ```
 
 6. Run database migrations (when you have a running database):
 ```bash
-prisma db push
+uv run prisma db push
 ```
 
 ## Running the Server
 
 Start the development server:
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The API will be available at:
@@ -60,7 +60,8 @@ backend/
 │   └── schema.prisma    # Database schema
 ├── .env.example         # Environment variables template
 ├── .gitignore
-├── requirements.txt     # Python dependencies
+├── pyproject.toml       # Project metadata and dependencies
+├── uv.lock             # Dependency lock file
 └── README.md
 ```
 
@@ -71,3 +72,4 @@ backend/
 - **Prisma**: Next-generation ORM for Python
 - **PostgreSQL**: Relational database
 - **Uvicorn**: ASGI server for running the application
+- **UV**: Fast Python package installer and resolver

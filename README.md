@@ -23,6 +23,7 @@ The backend is built with:
 - **Pydantic**: Data validation and settings management
 - **Prisma**: Type-safe ORM for PostgreSQL
 - **PostgreSQL**: Database
+- **UV**: Fast Python package manager
 
 ### Backend Setup
 
@@ -31,11 +32,9 @@ See [backend/README.md](./backend/README.md) for detailed setup instructions.
 Quick start:
 ```bash
 cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-prisma generate
-uvicorn app.main:app --reload
+uv sync
+uv run prisma generate
+uv run uvicorn app.main:app --reload
 ```
 
 The API will be available at http://localhost:8000
@@ -64,6 +63,7 @@ The app will be available at http://localhost:3000
 ### Prerequisites
 
 - Python 3.12+
+- UV (Python package manager)
 - Node.js 20+
 - PostgreSQL database (for backend)
 
@@ -74,8 +74,7 @@ In separate terminal windows:
 1. Backend:
 ```bash
 cd backend
-source venv/bin/activate
-uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload
 ```
 
 2. Frontend:

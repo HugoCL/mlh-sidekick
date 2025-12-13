@@ -1,0 +1,17 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "RAILPACK",
+    "buildCommand": "pip install uv && uv sync",
+    "watchPatterns": [
+      "agents/**",
+      "pyproject.toml",
+      "uv.lock"
+    ]
+  },
+  "deploy": {
+    "startCommand": "uv run adk api_server --host 0.0.0.0 --port $PORT agents",
+    "healthcheckPath": "/",
+    "restartPolicyType": "ALWAYS"
+  }
+}

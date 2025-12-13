@@ -1,0 +1,19 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "RAILPACK",
+    "buildCommand": "npm ci && npm run build",
+    "watchPatterns": [
+      "app/**",
+      "public/**",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json"
+    ]
+  },
+  "deploy": {
+    "startCommand": "npm run start",
+    "healthcheckPath": "/",
+    "restartPolicyType": "ALWAYS"
+  }
+}

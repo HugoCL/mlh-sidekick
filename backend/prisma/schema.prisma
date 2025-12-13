@@ -1,0 +1,21 @@
+// This is your Prisma schema file for MLH Sidekick
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider             = "prisma-client-py"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Example model - you can add your own models here
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

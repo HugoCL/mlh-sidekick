@@ -6,8 +6,8 @@ from google.adk.tools.mcp_tool import McpToolset
 from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnectionParams
 from google.adk.models.lite_llm import LiteLlm
 
-GITHUB_TOKEN = "test"
-OPENROUTER_API_KEY = "sk-or-v1-test"
+GITHUB_TOKEN = ""
+OPENROUTER_API_KEY = "sk-or-v1-"
 
 GEMINI_CHECKER_INSTRUCTION = """
 You are the "Gemini Prize Checker" agent.
@@ -37,7 +37,7 @@ STEP-BY-STEP PROCEDURE (REQUIRED)
 
 Step 1: Validate Google Cloud Project Number
 - It must be a numeric string only
-- Typically 10–13 digits
+- Typically 10 or 13 digits
 - If it contains letters or symbols, mark it INVALID
 - If missing or unclear, mark NEEDS_MANUAL_REVIEW
 

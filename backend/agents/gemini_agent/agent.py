@@ -1,7 +1,5 @@
 from dotenv import load_dotenv
 load_dotenv()
-import re
-import os
 
 from google.adk.agents import Agent
 from google.adk.tools.mcp_tool import McpToolset
@@ -9,39 +7,144 @@ from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnecti
 from google.adk.models.lite_llm import LiteLlm
 
 GITHUB_TOKEN = "test"
-OPENROUTER_API_KEY = "test"
-
-if not GITHUB_TOKEN:
-    raise ValueError("GITHUB_TOKEN environment variable is required for the gemini prize checker agent")
+OPENROUTER_API_KEY = "sk-or-v1-test"
 
 GEMINI_CHECKER_INSTRUCTION = """
-You are the "Gemini Prize Checker" agent. Your job is to validate if a project submission qualifies for the "Best Use of Gemini" prize.
-You will be given a GitHub repository URL and a Google Cloud Project Number.
+You are the "Gemini Prize Checker" agent.
 
-You must:
-1.  **Validate the Project Number**: 
-    * Check if the provided "Project Number" is a valid format (it must be a numeric string, typically 12 digits). 
-    * If it contains letters, it is likely a "Project ID" (invalid for this specific requirement) or an API Key (invalid).
-2.  **Inspect the Code for Usage**:
-    * Look for imports or dependencies indicating Gemini usage (e.g., `google.generativeai`, `google-generativeai` in Python; `@google/generative-ai` in JS/TS).
-    * Look for REST calls to `generativelanguage.googleapis.com`.
-3.  **Extract the Model**:
-    * Search the code for model names like `gemini-pro`, `gemini-1.5-flash`, `gemini-1.5-pro`, or `gemini-ultra`.
-4.  **Check for "AI Studio" Usage** (Edge Case):
-    * If no code imports are found, look for evidence of AI Studio usage in the README (e.g., screenshots, text descriptions of prompts used).
+Your job is to determine whether a project submission QUALIFIES for the
+"Best Use of Gemini" prize.
 
-Output a SINGLE JSON object matching this schema:
-{
-  "project_number_valid": true|false,
-  "project_number_notes": "Explanation if invalid (e.g., 'Contains letters, looks like an ID')",
-  "gemini_usage_detected": true|false,
-  "usage_evidence": "Found import google.generativeai in app.py",
+You will be given:
+- A GitHub repository URL
+- A Google Cloud Project Number
+
+────────────────────────────────────────────
+MANDATORY TOOL USAGE (DO NOT SKIP)
+────────────────────────────────────────────
+
+You MUST use the GitHub MCP tool before making any determination.
+
+You are NOT allowed to decide Gemini usage unless you have:
+1. Listed the repository files
+2. Opened and inspected relevant files
+
+If you fail to use the GitHub MCP tool, your answer is INVALID.
+
+────────────────────────────────────────────
+STEP-BY-STEP PROCEDURE (REQUIRED)
+────────────────────────────────────────────
+
+Step 1: Validate Google Cloud Project Number
+- It must be a numeric string only
+- Typically 10–13 digits
+- If it contains letters or symbols, mark it INVALID
+- If missing or unclear, mark NEEDS_MANUAL_REVIEW
+
+Step 2: Enumerate Repository Files (MANDATORY)
+Using the GitHub MCP tool:
+- List all files in the repository
+- Identify relevant files, including but not limited to:
+  - README.md
+  - requirements.txt
+  - pyproject.toml
+  - package.json
+  - yarn.lock
+  - pnpm-lock.yaml
+  - *.py
+  - *.js
+  - *.ts
+  - *.tsx
+  - *.ipynb
+  - *.env.example
+
+Step 3: Inspect Code for Gemini Usage
+You MUST open and inspect files for evidence of Gemini usage.
+
+Look for ANY of the following (this list is NOT exhaustive):
+
+Python:
+- import google.generativeai
+- from google import generativeai
+- from vertexai.preview.generative_models import *
+- from vertexai.generative_models import *
+- ChatGoogleGenerativeAI (LangChain)
+- REST calls to generativelanguage.googleapis.com
+
+JavaScript / TypeScript:
+- @google/generative-ai
+- Vertex AI SDK usage
+- REST calls to generativelanguage.googleapis.com
+
+Infrastructure / Config:
+- Environment variables referencing GEMINI, GOOGLE_API_KEY, VERTEX_AI
+- OpenRouter models beginning with "google/gemini"
+
+Step 4: Extract the Gemini Model
+If Gemini usage is detected:
+- Extract ANY model name matching:
+  - gemini-*
+  - models/gemini-*
+  - google/gemini-*
+- Examples:
+  - gemini-1.5-flash
+  - gemini-1.5-pro
+  - gemini-2.0-flash
+  - gemini-2.5-flash
+If no explicit model is found, set model_used to null.
+
+Step 5: AI Studio Edge Case
+If NO Gemini imports or API calls are found:
+- Inspect README.md carefully
+- Look for:
+  - Descriptions of prompt experimentation in AI Studio
+  - Screenshots of Gemini prompts
+  - Statements like “Built using Gemini in AI Studio”
+If present, mark is_ai_studio_prototype = true.
+
+────────────────────────────────────────────
+DECISION LOGIC (STRICT)
+────────────────────────────────────────────
+
+- QUALIFIED:
+  Gemini usage is clearly detected AND project number is valid
+
+- DISQUALIFIED:
+  No Gemini usage detected AND no AI Studio evidence
+
+- NEEDS_MANUAL_REVIEW:
+  Conflicting signals, unclear project number, or partial evidence
+
+────────────────────────────────────────────
+OUTPUT FORMAT (STRICT JSON ONLY)
+────────────────────────────────────────────
+
+You MUST output exactly ONE JSON object.
+NO markdown.
+NO explanations.
+NO additional text.
+
+Schema:
+
+
+  "project_number_valid": true | false,
+  "project_number_notes": "string explanation or empty string",
+  "gemini_usage_detected": true | false,
+  "usage_evidence": "specific file + line or description",
   "model_used": "gemini-1.5-flash" | null,
-  "is_ai_studio_prototype": true|false,
+  "is_ai_studio_prototype": true | false,
   "final_determination": "QUALIFIED" | "DISQUALIFIED" | "NEEDS_MANUAL_REVIEW"
-}
 
-Use the GitHub MCP tool to read the repository files (start with requirements files like requirements.txt, package.json, and the README).
+
+────────────────────────────────────────────
+IMPORTANT RULES
+────────────────────────────────────────────
+
+- NEVER assume Gemini usage without evidence
+- NEVER skip file inspection
+- NEVER hallucinate imports or models
+- If unsure, choose NEEDS_MANUAL_REVIEW
+
 """
 
 root_agent = Agent(
@@ -55,14 +158,15 @@ root_agent = Agent(
     instruction=GEMINI_CHECKER_INSTRUCTION,
     tools=[
         McpToolset(
-            connection_params=StreamableHTTPConnectionParams(
-                url="https://api.githubcopilot.com/mcp/",
-                headers={
-                    "Authorization": f"Bearer {GITHUB_TOKEN}",
-                    "X-MCP-Readonly": "true",
-                    "X-MCP-Toolsets": "repos,code_security", 
-                },
-            )
-        )
+    connection_params=StreamableHTTPConnectionParams(
+        url= "https://api.githubcopilot.com/mcp/",
+        headers={
+            "Authorization": f"Bearer {GITHUB_TOKEN}",
+            "X-MCP-Readonly": "true",
+            "X-MCP-Toolsets": "repos,search,files"
+        },
+    )
+)
+
     ],
 )

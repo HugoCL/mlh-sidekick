@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from google.adk.runners import InMemoryRunner
 from agents.gemini_agent import root_agent
 from agents.dot_tech_agent import tech_agent
+from agents.mongodb_agent import root_agent as mongodb_agent
 
 app = FastAPI(
     title="MLH Sidekick API",
@@ -25,6 +26,9 @@ class PrizeCheckRequest(BaseModel):
 
 class TechPrizeCheckRequest(BaseModel):
     project_url: str
+
+class MongoDBPrizeCheckRequest(BaseModel):
+    repo_url: str
 
 def find_json_in_history(history):
     valid_json = None
@@ -109,4 +113,23 @@ async def check_dot_tech_prize(request: TechPrizeCheckRequest):
 
     except Exception as e:
         print(f"Error running .Tech agent: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/agents/check-mongodb-prize")
+async def check_mongodb_prize(request: MongoDBPrizeCheckRequest):
+    try:
+        prompt = (
+            f"Please check this project for the MongoDB Prize.\n"
+            f"GitHub Repository: {request.repo_url}\n\n"
+            f"SYSTEM INSTRUCTION: Do NOT explain your plan. Use the tools immediately. Output ONLY the final JSON object."
+        )
+        
+        runner = InMemoryRunner(agent=mongodb_agent)
+        history = await runner.run_debug(prompt, verbose=False)
+        clean_result = find_json_in_history(history)
+        
+        return {"result": clean_result}
+        
+    except Exception as e:
+        print(f"Error running MongoDB agent: {e}")
         raise HTTPException(status_code=500, detail=str(e))

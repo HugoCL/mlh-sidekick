@@ -10,6 +10,7 @@ from google.adk.runners import InMemoryRunner
 from agents.gemini_agent import root_agent
 from agents.dot_tech_agent import tech_agent
 from agents.mongodb_agent import root_agent as mongodb_agent
+from agents.elevenlabs_agent import root_agent as elevenlabs_agent
 
 app = FastAPI(
     title="MLH Sidekick API",
@@ -28,6 +29,9 @@ class TechPrizeCheckRequest(BaseModel):
     project_url: str
 
 class MongoDBPrizeCheckRequest(BaseModel):
+    repo_url: str
+
+class ElevenLabsPrizeCheckRequest(BaseModel):
     repo_url: str
 
 def find_json_in_history(history):
@@ -133,3 +137,23 @@ async def check_mongodb_prize(request: MongoDBPrizeCheckRequest):
     except Exception as e:
         print(f"Error running MongoDB agent: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/agents/check-elevenlabs-prize")
+async def check_elevenlabs_prize(request: ElevenLabsPrizeCheckRequest):
+    try:
+        prompt = (
+            f"Please check this project for the ElevenLabs Prize.\n"
+            f"GitHub Repository: {request.repo_url}\n\n"
+            f"SYSTEM INSTRUCTION: Do NOT explain your plan. Use the tools immediately. Output ONLY the final JSON object."
+        )
+        
+        runner = InMemoryRunner(agent=elevenlabs_agent)
+        history = await runner.run_debug(prompt, verbose=False)
+        clean_result = find_json_in_history(history)
+        
+        return {"result": clean_result}
+        
+    except Exception as e:
+        print(f"Error running ElevenLabs agent: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+

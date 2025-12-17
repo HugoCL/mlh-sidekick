@@ -7,9 +7,10 @@ from google.adk.tools.mcp_tool import McpToolset
 from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnectionParams
 from google.adk.models.lite_llm import LiteLlm
 from ..prompts import GEMINI_CHECKER_INSTRUCTION
+import streamlit as st
 
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
+OPENROUTER_API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
 root_agent = Agent(
     model=LiteLlm(

@@ -6,7 +6,9 @@ from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnecti
 from google.adk.models.lite_llm import LiteLlm
 from ..prompts import CODE_REVIEWER_INSTRUCTION
 
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+import streamlit as st
+
+GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
 
 if not GITHUB_TOKEN:
     raise ValueError("GITHUB_TOKEN environment variable is required for the code reviewer agent")

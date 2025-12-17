@@ -5,9 +5,10 @@ from google.adk.agents import Agent
 from google.adk.models.lite_llm import LiteLlm
 from ..prompts import DOT_TECH_INSTRUCTION
 
-load_dotenv()
+import streamlit as st
 
-OPENROUTER_API_KEY = "sk-or-v1-"
+GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
+OPENROUTER_API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
 def check_website_status(url: str) -> str:
     url = url.strip()   

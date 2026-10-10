@@ -85,4 +85,4 @@ npm run dev
 
 ## License
 
-MIT
+Licensed under the GNU AGPL-3.0. You can use, modify and distribute it, including commercially, but if you modify it and offer it as a network service you must publish your source code under the same license. See [LICENSE](LICENSE).
